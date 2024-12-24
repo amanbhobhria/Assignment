@@ -2,6 +2,7 @@ package com.myjar.jarassignment
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.SearchView
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
@@ -44,19 +45,26 @@ class MainActivity : ComponentActivity() {
             }
 
             override fun onQueryTextChange(p0: String?): Boolean {
-                val filteredList = adapter.currentList.filter {
-                    it.name.contains(p0.toString(), ignoreCase = true)
+                val filteredList = if (p0.isNullOrEmpty()) {
+                    adapter.currentList
+                } else {
+                    adapter.currentList.filter {
+                        it.name.contains(p0, ignoreCase = true)
+                    }
                 }
                 adapter.submitList(filteredList)
                 return false
             }
+
         } )}
     private fun observeFlows() {
         lifecycleScope.launch {
-            viewModel.listStringData.collectLatest {
-                adapter.submitList(it)
+            viewModel.listStringData.collectLatest { data ->
+                Log.d("MainActivity", "Data collected: $data")
+                adapter.submitList(data)
             }
         }
+
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
@@ -76,7 +84,13 @@ class MainActivity : ComponentActivity() {
         }
 
         recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = adapter
     }
+
+
+
+
+
 
     override fun onResume() {
         super.onResume()
